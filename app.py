@@ -12,5 +12,8 @@ bot.load_extension("commands.admin")
 bot.load_extension("commands.general")
 bot.load_extension("commands.ticket")
 bot.load_extension("commands.music")
+bot.load_extension("commands.automod")
+bot.load_extension("commands.backup")
+bot.load_extension("commands.attendance")
 
 bot.run(BOT_TOKEN)

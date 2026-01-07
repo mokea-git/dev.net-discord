@@ -149,7 +149,7 @@ class GeneralCommands(commands.Cog):
         )
         embed.add_field(
             name="관리자",
-            value="`/공지` `/임베드` `/추방` `/밴` `/언밴` `/타임아웃` `/경고` `/경고확인` `/경고초기화` `/restart`",
+            value="`/공지` `/임베드` `/추방` `/밴` `/언밴` `/타임아웃` `/경고` `/경고확인` `/경고초기화` `/restart` `/자동조정` `/욕설목록` `/백업` `/백업목록` `/백업복원` `/포인트관리`",
             inline=False
         )
         embed.add_field(
@@ -159,7 +159,12 @@ class GeneralCommands(commands.Cog):
         )
         embed.add_field(
             name="음악",
-            value="`/music`",
+            value="`/music` - play, queue, skip, nowplaying, loop, volume, on (관리자), off (관리자)",
+            inline=False
+        )
+        embed.add_field(
+            name="출석",
+            value="`/출석` `/출석현황` `/출석랭킹`",
             inline=False
         )
         await ctx.response.send_message(embed=embed)
