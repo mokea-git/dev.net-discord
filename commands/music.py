@@ -1,9 +1,8 @@
 import nextcord
 from nextcord.ext import commands
-from nextcord import SlashOption
 from nextcord.ui import View, Select
 import yt_dlp
-import asyncio
+import aiohttp
 
 from config import GUILD_ID, MUSIC_VOICE_CHANNEL_ID
 
@@ -21,6 +20,9 @@ FFMPEG_OPTIONS = {
     'options': '-vn'
 }
 
+# Discord Activity (Watch Together) ID
+WATCH_TOGETHER_APP_ID = 880218394199220334
+
 
 class MusicSelect(View):
     def __init__(self, cog):
@@ -28,10 +30,11 @@ class MusicSelect(View):
         self.cog = cog
 
     @nextcord.ui.select(
-        placeholder="음악 기능을 선택하세요",
+        placeholder="기능을 선택하세요",
         options=[
             nextcord.SelectOption(label="On", description="음악 봇을 음성 채널에 입장시킵니다", emoji="🔊"),
             nextcord.SelectOption(label="Play", description="유튜브 링크로 음악을 재생합니다", emoji="▶️"),
+            nextcord.SelectOption(label="Watch", description="Watch Together로 영상을 함께 봅니다", emoji="🎬"),
             nextcord.SelectOption(label="Off", description="음악을 멈추고 봇을 퇴장시킵니다", emoji="🔇"),
         ]
     )
@@ -39,37 +42,34 @@ class MusicSelect(View):
         choice = select.values[0]
 
         if choice == "On":
-            await self.cog.join_voice(interaction)
+            await interaction.response.send_modal(OnModal(self.cog))
         elif choice == "Play":
-            await self.cog.ask_youtube_url(interaction)
+            await interaction.response.send_modal(PlayModal(self.cog))
+        elif choice == "Watch":
+            await interaction.response.send_modal(WatchModal(self.cog))
         elif choice == "Off":
-            await self.cog.leave_voice(interaction)
+            await interaction.response.send_modal(OffModal(self.cog))
 
 
-class YouTubeURLModal(nextcord.ui.Modal):
+class OnModal(nextcord.ui.Modal):
     def __init__(self, cog):
-        super().__init__(title="음악 재생")
+        super().__init__(title="음성 채널 입장")
         self.cog = cog
 
-        self.url = nextcord.ui.TextInput(
-            label="유튜브 링크",
-            placeholder="https://www.youtube.com/watch?v=...",
-            required=True
+        self.confirm = nextcord.ui.TextInput(
+            label="입장하려면 '시작'을 입력하세요",
+            placeholder="시작",
+            required=True,
+            max_length=10
         )
-        self.add_item(self.url)
+        self.add_item(self.confirm)
 
     async def callback(self, interaction: nextcord.Interaction):
-        await self.cog.play_music(interaction, self.url.value)
+        if self.confirm.value != "시작":
+            await interaction.response.send_message("'시작'을 입력해주세요.", ephemeral=True)
+            return
 
-
-class MusicCommands(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
-        self.queue = []
-        self.is_playing = False
-
-    async def join_voice(self, interaction: nextcord.Interaction):
-        voice_channel = self.bot.get_channel(MUSIC_VOICE_CHANNEL_ID)
+        voice_channel = self.cog.bot.get_channel(MUSIC_VOICE_CHANNEL_ID)
 
         if voice_channel is None:
             await interaction.response.send_message("음성 채널을 찾을 수 없습니다.", ephemeral=True)
@@ -82,27 +82,34 @@ class MusicCommands(commands.Cog):
         await voice_channel.connect()
         await interaction.response.send_message(f"🔊 **{voice_channel.name}** 채널에 입장했습니다!", ephemeral=True)
 
-    async def ask_youtube_url(self, interaction: nextcord.Interaction):
-        if not interaction.guild.voice_client:
-            await interaction.response.send_message("먼저 'On'으로 봇을 입장시켜주세요.", ephemeral=True)
-            return
 
-        await interaction.response.send_modal(YouTubeURLModal(self))
+class PlayModal(nextcord.ui.Modal):
+    def __init__(self, cog):
+        super().__init__(title="음악 재생")
+        self.cog = cog
 
-    async def play_music(self, interaction: nextcord.Interaction, url: str):
+        self.url = nextcord.ui.TextInput(
+            label="유튜브 링크",
+            placeholder="https://www.youtube.com/watch?v=...",
+            required=True
+        )
+        self.add_item(self.url)
+
+    async def callback(self, interaction: nextcord.Interaction):
         voice_client = interaction.guild.voice_client
 
         if not voice_client:
-            await interaction.response.send_message("봇이 음성 채널에 없습니다. 먼저 'On'을 선택하세요.", ephemeral=True)
+            await interaction.response.send_message("먼저 'On'으로 봇을 입장시켜주세요.", ephemeral=True)
             return
 
         await interaction.response.defer(ephemeral=True)
 
         try:
             with yt_dlp.YoutubeDL(YDL_OPTIONS) as ydl:
-                info = ydl.extract_info(url, download=False)
+                info = ydl.extract_info(self.url.value, download=False)
                 url2 = info['url']
                 title = info.get('title', '알 수 없는 제목')
+                thumbnail = info.get('thumbnail', None)
 
             if voice_client.is_playing():
                 voice_client.stop()
@@ -110,12 +117,81 @@ class MusicCommands(commands.Cog):
             source = nextcord.FFmpegPCMAudio(url2, **FFMPEG_OPTIONS)
             voice_client.play(source)
 
-            await interaction.followup.send(f"▶️ 재생 중: **{title}**", ephemeral=True)
+            embed = nextcord.Embed(
+                title="▶️ 재생 중",
+                description=f"**{title}**",
+                color=nextcord.Color.red()
+            )
+            if thumbnail:
+                embed.set_thumbnail(url=thumbnail)
+
+            await interaction.followup.send(embed=embed, ephemeral=True)
 
         except Exception as e:
             await interaction.followup.send(f"오류가 발생했습니다: {e}", ephemeral=True)
 
-    async def leave_voice(self, interaction: nextcord.Interaction):
+
+class WatchModal(nextcord.ui.Modal):
+    def __init__(self, cog):
+        super().__init__(title="Watch Together")
+        self.cog = cog
+
+        self.confirm = nextcord.ui.TextInput(
+            label="시작하려면 '시작'을 입력하세요",
+            placeholder="시작",
+            required=True,
+            max_length=10
+        )
+        self.add_item(self.confirm)
+
+    async def callback(self, interaction: nextcord.Interaction):
+        if self.confirm.value != "시작":
+            await interaction.response.send_message("'시작'을 입력해주세요.", ephemeral=True)
+            return
+
+        voice_channel = self.cog.bot.get_channel(MUSIC_VOICE_CHANNEL_ID)
+
+        if voice_channel is None:
+            await interaction.response.send_message("음성 채널을 찾을 수 없습니다.", ephemeral=True)
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        try:
+            # Discord Activity 초대 링크 생성
+            invite = await voice_channel.create_activity_invite(WATCH_TOGETHER_APP_ID)
+
+            embed = nextcord.Embed(
+                title="🎬 Watch Together",
+                description=f"아래 링크를 클릭하여 함께 영상을 시청하세요!\n\n[**여기를 클릭하세요**]({invite.url})",
+                color=nextcord.Color.blurple()
+            )
+            embed.set_thumbnail(url="https://cdn.discordapp.com/app-icons/880218394199220334/ec48acbad4c32efab4275cb9f3ca3a58.png")
+
+            await interaction.followup.send(embed=embed, ephemeral=True)
+
+        except Exception as e:
+            await interaction.followup.send(f"오류가 발생했습니다: {e}", ephemeral=True)
+
+
+class OffModal(nextcord.ui.Modal):
+    def __init__(self, cog):
+        super().__init__(title="음악 종료")
+        self.cog = cog
+
+        self.confirm = nextcord.ui.TextInput(
+            label="종료하려면 '종료'를 입력하세요",
+            placeholder="종료",
+            required=True,
+            max_length=10
+        )
+        self.add_item(self.confirm)
+
+    async def callback(self, interaction: nextcord.Interaction):
+        if self.confirm.value != "종료":
+            await interaction.response.send_message("'종료'를 입력해주세요.", ephemeral=True)
+            return
+
         voice_client = interaction.guild.voice_client
 
         if not voice_client:
@@ -128,6 +204,11 @@ class MusicCommands(commands.Cog):
         await voice_client.disconnect()
         await interaction.response.send_message("🔇 음악을 멈추고 퇴장했습니다.", ephemeral=True)
 
+
+class MusicCommands(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+
     @nextcord.slash_command(
         name="music",
         description="음악 기능을 사용합니다",
@@ -135,7 +216,7 @@ class MusicCommands(commands.Cog):
     )
     async def music(self, ctx: nextcord.Interaction):
         view = MusicSelect(self)
-        await ctx.response.send_message("🎵 음악 기능을 선택하세요:", view=view, ephemeral=True)
+        await ctx.response.send_message("🎵 기능을 선택하세요:", view=view, ephemeral=True)
 
 
 def setup(bot):
