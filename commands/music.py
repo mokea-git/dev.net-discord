@@ -3,7 +3,7 @@ from nextcord.ext import commands
 import yt_dlp
 import aiohttp
 
-from config import GUILD_ID, MUSIC_VOICE_CHANNEL_ID
+from config import GUILD_ID, MUSIC_VOICE_CHANNEL_ID, BOT_TOKEN
 
 # yt-dlp 옵션
 YDL_OPTIONS = {
@@ -146,7 +146,7 @@ class MusicModal(nextcord.ui.Modal):
                         "target_type": 2
                     },
                     headers={
-                        "Authorization": f"Bot {self.cog.bot.http.token}",
+                        "Authorization": f"Bot {BOT_TOKEN}",
                         "Content-Type": "application/json"
                     }
                 ) as resp:
