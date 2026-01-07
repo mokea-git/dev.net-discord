@@ -157,6 +157,11 @@ class GeneralCommands(commands.Cog):
             value="`/ticket` `/신고`",
             inline=False
         )
+        embed.add_field(
+            name="음악",
+            value="`/music`",
+            inline=False
+        )
         await ctx.response.send_message(embed=embed)
 
 

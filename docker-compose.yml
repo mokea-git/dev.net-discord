@@ -1,0 +1,8 @@
+version: '3.8'
+
+services:
+  discord-bot:
+    build: .
+    container_name: mokea-discord-bot
+    restart: unless-stopped
+    env_file: stack.env  # Portainer의 환경 변수를 사용하기 위해 필요합니다.

@@ -11,5 +11,6 @@ bot.load_extension("events")
 bot.load_extension("commands.admin")
 bot.load_extension("commands.general")
 bot.load_extension("commands.ticket")
+bot.load_extension("commands.music")
 
 bot.run(BOT_TOKEN)
