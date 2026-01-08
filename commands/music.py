@@ -196,7 +196,7 @@ class MusicModal(nextcord.ui.Modal):
                 inline=False
             )
 
-        await interaction.response.send_message(embed=embed)
+        await interaction.response.send_message(embed=embed, ephemeral=True)
 
     async def handle_skip(self, interaction: nextcord.Interaction):
         voice_client = interaction.guild.voice_client
@@ -334,8 +334,9 @@ class MusicCommands(commands.Cog):
         description="음악 기능을 사용합니다",
         guild_ids=[GUILD_ID]
     )
-    async def music(self, ctx: nextcord.Interaction):
-        await ctx.response.send_modal(MusicModal(self))
+    async def music(self, interaction: nextcord.Interaction):
+        modal = MusicModal(self)
+        await interaction.response.send_modal(modal)
 
 
 def setup(bot):
