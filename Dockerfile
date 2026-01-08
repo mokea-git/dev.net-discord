@@ -1,5 +1,5 @@
 # Node.js 공식 이미지 사용
-FROM node:20-alpine
+FROM node:20-slim
 
 # ffmpeg 설치 (음악 기능에 필요)
 RUN apk add --no-cache ffmpeg python3 make g++
