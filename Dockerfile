@@ -2,7 +2,7 @@
 FROM node:20-slim
 
 # ffmpeg 설치 (음악 기능에 필요)
-RUN apk add --no-cache ffmpeg python3 make g++
+RUN apt-get update && apt-get install -y ffmpeg python3 make g++ && rm -rf /var/lib/apt/lists/*
 
 # 작업 디렉토리 설정
 WORKDIR /app
