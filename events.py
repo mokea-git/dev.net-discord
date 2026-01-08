@@ -16,7 +16,7 @@ class Events(commands.Cog):
         print(f"We have logged in as {self.bot.user}")
         await self.bot.change_presence(
             status=nextcord.Status.dnd,
-            activity=nextcord.Activity(type=nextcord.ActivityType.listening, name="mokea.dev")
+            activity=nextcord.Activity(type=nextcord.ActivityType.listening, name="생각중...")
         )
         # ~~하는 중 등 상태 설정법
         # activity=nextcord.Game(name="하는 중")
