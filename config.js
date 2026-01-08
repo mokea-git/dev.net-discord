@@ -1,0 +1,23 @@
+// ─────────────────────────
+// 봇 설정
+// ─────────────────────────
+
+// 역할 ID
+export const ROLE_ID = '1456847982501822555';
+export const ADMIN_ROLE_ID = '1456838206858334300';
+
+// 채널 ID
+export const TICKET_CATEGORY_ID = '1456850762930847836';
+export const LOG_CHANNEL_ID = '1456850877292875951';
+export const ANNOUNCE_CHANNEL_ID = '1456830000916594718';
+export const WELCOME_CHANNEL_ID = '1456842894181793975';
+export const PUNISH_LOG_CHANNEL_ID = '1456827565594378474';
+export const MUSIC_VOICE_CHANNEL_ID = '1458349110187786483';
+export const EXTENDED_LOG_CHANNEL_ID = '1458367930650591273';
+export const ATTENDANCE_CHANNEL_ID = '1458368371719671831';
+
+// 서버 ID
+export const GUILD_ID = '1456827564374098058';
+
+// 봇 토큰 (환경변수에서 가져옴)
+export const BOT_TOKEN = process.env.BOT_TOKEN;

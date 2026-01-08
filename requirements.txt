@@ -1,4 +1,0 @@
-nextcord
-yt-dlp
-PyNaCl
-aiohttp

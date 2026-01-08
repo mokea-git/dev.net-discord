@@ -1,0 +1,16 @@
+node_modules
+*.pyc
+__pycache__
+*.py
+commands/**/*.py
+events.py
+app.py
+config.py
+requirements.txt
+.git
+.gitignore
+.env
+*.log
+backups
+attendance_data.json
+warnings.json
