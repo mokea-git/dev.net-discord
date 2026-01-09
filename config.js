@@ -19,5 +19,8 @@ export const ATTENDANCE_CHANNEL_ID = '1458368371719671831';
 // 서버 ID
 export const GUILD_ID = '1456827564374098058';
 
+// 봇 클라이언트 ID
+export const CLIENT_ID = '1456842400453496874';
+
 // 봇 토큰 (환경변수에서 가져옴)
 export const BOT_TOKEN = process.env.BOT_TOKEN;

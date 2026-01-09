@@ -2,7 +2,7 @@ import { REST, Routes } from 'discord.js';
 import { readdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { BOT_TOKEN, GUILD_ID } from './config.js';
+import { BOT_TOKEN, GUILD_ID, CLIENT_ID } from './config.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -32,7 +32,7 @@ const rest = new REST().setToken(BOT_TOKEN);
   try {
     console.log(`\n📝 ${commands.length}개의 슬래시 커맨드를 등록합니다...`);
 
-    const data = await rest.put(Routes.applicationGuildCommands(process.env.CLIENT_ID || 'YOUR_CLIENT_ID', GUILD_ID), {
+    const data = await rest.put(Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID), {
       body: commands,
     });
 

@@ -16,5 +16,5 @@ RUN npm install --production
 # 소스 코드 복사
 COPY . .
 
-# 봇 실행
-CMD ["node", "index.js"]
+# 봇 실행 (명령어 등록 후 시작)
+CMD ["sh", "-c", "node deploy-commands.js && node index.js"]
